@@ -15,10 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Load libraries
-
 ```{r Load libraries, echo= FALSE}
-library("ggplot2")
-library("ggbiplot")
 library("factoextra")
 ```
 
@@ -26,53 +23,44 @@ library("factoextra")
 # Load data
 
 ```{r Load data, echo= FALSE}
-#Dar nombre a la base de datos y adjuntarla
-mouse_data_1<-read.csv("../data/Data_rTMS_Oligodendrocyte.csv")
+# Load data base
 mouse_data<-read.csv("../data/Data_rTMS_Oligodendrocyte.csv")
-#mouse_data<-mouse_data[-c(4,5,9,10,11,15,16,17,21,22,23,27,28,29),]
+
+# Delete individuals and variables with NA
 mouse_data<-mouse_data[-c(11,17,23,29),-c(7:10)]
 head(mouse_data)
+
+# Change rownames
 row.names(mouse_data)<- mouse_data$Individual  
 
 # Delete first column
 mouse_data<- mouse_data[,-1]
 head(mouse_data)
+
+# Add levels
 levels(mouse_data$Group)
 mouse_data$Group<- c(rep("Ctrl",5), rep("Sham",5), rep("rTMS",5), rep("Fxl",5),rep("rTMS-Fxl",5))
 mouse_data$Group <- factor(mouse_data$Group, levels = c("Ctrl", "Sham", "Fxl", "rTMS", "rTMS-Fxl"))
 str(mouse_data$Group)
 ```
 
-
-# Porcentaje de varianza explicada en cadacomponente
+# Percentage of variance per each components
 ```{r echo= FALSE}
 res.pca <- prcomp(na.omit(mouse_data[2:20]), scale = TRUE)
-fviz_eig(res.pca)
 fviz_screeplot(res.pca,  addlabels = TRUE, ylim = c(0, 50))
 ggsave("../outputs/percentage_variance.eps",
-       dpi = 600)
+       dpi = 300)
 ```
 
-# PCA individuos
-```{r echo= FALSE}
-fviz_pca_ind(res.pca,
-             col.ind = "cos2", # Color by the quality of representation
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-             )
-ggsave("../outputs/individuals.eps",
-       dpi = 600)
-```
 # PCA variables
-
 ```{r echo= FALSE}
 fviz_pca_var(res.pca,
              col.var = "contrib", # Color by contributions to the PC
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE     # Avoid text overlapping
              )
-ggsave("../outputs/variables.eps",
-       dpi = 600)
+ggsave("../outputs/PCA_variables.eps",
+       dpi = 300)
 ```
 
 ```{r echo= FALSE}
@@ -81,16 +69,16 @@ fviz_pca_biplot(res.pca, repel = TRUE,
                 col.ind = "#696969"  # Individuals color
                 )
 ggsave("../outputs/biplot.eps",
-       dpi = 600)
+       dpi = 300)
 ```
 
-# Eigenvalues
+# Get Eigenvalues
 ```{r echo= FALSE}
 # Eigenvalues
 eig.val <- get_eigenvalue(res.pca)
 eig.val
 ```
-# Variables 
+# Contribution of Variables 
 
 ```{r echo= FALSE}
 # Results for Variables
@@ -100,17 +88,7 @@ res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 ```
 
-# Individuos
-
-```{r echo= FALSE}
-# Results for individuals
-res.ind <- get_pca_ind(res.pca)
-res.ind$coord          # Coordinates
-res.ind$contrib        # Contributions to the PCs
-res.ind$cos2           # Quality of representation 
-```
-
-# PCA grupos
+# PCA groups
 
 ```{r echo= FALSE}
 groups <- as.factor(mouse_data$Group[1:25])
@@ -131,25 +109,27 @@ label = "var",
              repel = TRUE
              )+
 scale_shape_manual(values=c(21,22,24,25,23))
-ggsave("../outputs/groups.eps",
-       dpi = 600)
+ggsave("../outputs/PCA-groups.eps",
+       dpi = 300)
 
 ```
 
 
-# Contribución de componente 1 y 2
+# Contribution of PC 1 and 2
 
 ```{r echo= FALSE}
 # Contributions of variables to PC1
-fviz_contrib(res.pca, choice = "var", axes = 1, top = 24)
-ggsave("../outputs/PCA_1.eps",
-       dpi = 600)
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 20)
+ggsave("../outputs/PC_1.eps",
+       dpi = 300)
 
 # Contributions of variables to PC2
-fviz_contrib(res.pca, choice = "var", axes = 2, top = 24)
-ggsave("../outputs/PCA.eps",
-       dpi = 600)
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 20)
+ggsave("../outputs/PC_2.eps",
+       dpi = 300)
 ```
+
+# Contribution of PC 2 and 3
 
 ```{r echo= FALSE}
 groups <- as.factor(mouse_data$Group[1:25])
@@ -172,14 +152,16 @@ label = "var",
              )+
 scale_shape_manual(values=c(21,22,24,25,23))
 ggsave("../outputs/groups2-3.eps",
-       dpi = 600)
+       dpi = 300)
 ```
+
+# Contribution of PC 1 and 3
 
 ```{r echo= FALSE}
 groups <- as.factor(mouse_data$Group[1:25])
 
 fviz_pca_ind(res.pca,
-             axes = c(3,4),
+             axes = c(1,3),
              col.ind = groups, # color by groups
              palette = c("black",
 "red",
@@ -196,51 +178,5 @@ label = "var",
              )+
 scale_shape_manual(values=c(21,22,24,25,23))
 ggsave("../outputs/groups1-3.eps",
-       dpi = 600)
-```
-
-```{r echo= FALSE}
-library(plotly)
-library(stats)
-groups <- as.factor(mouse_data$Group[1:25])
-
-#X <- subset(iris, select = -c(Species))
-X <- subset(mouse_data, select = -c(Group))
-#Escalar los datos para hacerlos comparables 
-
-#prin_comp <- prcomp(X, rank. = 3)
-prin_comp <- prcomp(na.omit(mouse_data[2:20]), scale = TRUE, rank. = 3)
-
-
-components <- prin_comp[["x"]]
-components <- data.frame(components)
-components$PC2 <- -components$PC2
-components$PC3 <- -components$PC3
-#components = cbind(components, iris$Species)
-components = cbind(components, mouse_data$Group)
-
-tot_explained_variance_ratio <- summary(prin_comp)[["importance"]]['Proportion of Variance',]
-tot_explained_variance_ratio <- 100 * sum(tot_explained_variance_ratio)
-
-tit = 'Total Explained Variance = 99.48'
-
-#fig <- plot_ly(components, x = ~PC1, y = ~PC2, z = ~PC3, color = ~iris$Species, colors = c('#636EFA','#EF553B','#00CC96') ) %>%
-#  add_markers(size = 12)
-
-fig <- plot_ly(components, x = ~PC1, y = ~PC2, z = ~PC3, color = ~mouse_data$Group, colors = c("black",
-"red",
-"blue",
-"purple",
-"#006600") ) %>%
-  add_markers(size = 12)
-
-
-fig <- fig %>%
-  layout(
-    title = tit,
-    scene = list(bgcolor = "#e5ecf6")
-)
-
-
-fig
+       dpi = 300)
 ```
