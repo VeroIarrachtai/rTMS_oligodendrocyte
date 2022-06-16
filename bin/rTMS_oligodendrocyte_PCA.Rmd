@@ -115,7 +115,7 @@ ggsave("../outputs/PCA-groups.eps",
 ```
 
 
-# Contribution of PC 1 and 2
+# Contribution of PC 1,2 and 3
 
 ```{r echo= FALSE}
 # Contributions of variables to PC1
@@ -126,6 +126,11 @@ ggsave("../outputs/PC_1.eps",
 # Contributions of variables to PC2
 fviz_contrib(res.pca, choice = "var", axes = 2, top = 20)
 ggsave("../outputs/PC_2.eps",
+       dpi = 300)
+
+# Contributions of variables to PC3
+fviz_contrib(res.pca, choice = "var", axes = 3, top = 20)
+ggsave("../outputs/PC_3.eps",
        dpi = 300)
 ```
 
